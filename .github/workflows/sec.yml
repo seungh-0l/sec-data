@@ -1,0 +1,26 @@
+name: SEC data
+
+on:
+  schedule:
+    - cron: "0 22 * * *"     # 매일 한국시간 오전 7시
+  workflow_dispatch:          # 수동 실행 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python fetch_sec.py
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data
+          git diff --staged --quiet || (git commit -m "Update SEC data" && git push)
